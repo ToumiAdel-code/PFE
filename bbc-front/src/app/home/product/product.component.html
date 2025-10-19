@@ -1,0 +1,390 @@
+<div class="page-wrapper">
+  <div class="page-content">
+    <!-- Breadcrumb Navigation -->
+    <nav aria-label="breadcrumb" class="breadcrumb-nav">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="#" routerLink="/">Accueil</a></li>
+        <li class="breadcrumb-item"><a href="#">{{ product.category }}</a></li>
+        <li class="breadcrumb-item active" aria-current="page">{{ product.title }}</li>
+      </ol>
+    </nav>
+
+    <div class="product-container">
+      <div class="row g-4">
+        <!-- Image Gallery Section -->
+        <div class="col-lg-6 col-md-6">
+          <div class="product-gallery">
+            <!-- Main Image Display -->
+            <div class="main-image-container">
+              <div class="image-wrapper">
+                <img
+                  src="{{ host + getCurrentImage() }}"
+                  class="main-product-image"
+                  [alt]="product.title"
+                />
+
+                <!-- Image Zoom Indicator -->
+                <div class="zoom-indicator">
+                  <i class="bi bi-zoom-in"></i>
+                  <span>Survoler pour zoomer</span>
+                </div>
+
+                <!-- Navigation Arrows -->
+                <div *ngIf="hasMultipleImages()" class="image-navigation">
+                  <button
+                    class="nav-btn nav-prev"
+                    (click)="previousImage()"
+                    [disabled]="currentImageIndex === 0"
+                    title="Image précédente"
+                  >
+                    <i class="bi bi-chevron-left"></i>
+                  </button>
+                  <button
+                    class="nav-btn nav-next"
+                    (click)="nextImage()"
+                    [disabled]="currentImageIndex === getAllImages().length - 1"
+                    title="Image suivante"
+                  >
+                    <i class="bi bi-chevron-right"></i>
+                  </button>
+                </div>
+
+                <!-- Image Counter -->
+                <div *ngIf="hasMultipleImages()" class="image-counter">
+                  <span>{{ currentImageIndex + 1 }}</span>
+                  <span>/</span>
+                  <span>{{ getAllImages().length }}</span>
+                </div>
+
+
+
+                <!-- Discount Badge -->
+                <div *ngIf="product.salePrice < product.regularPrice" class="discount-badge">
+
+                </div>
+              </div>
+            </div>
+
+            <!-- Thumbnail Gallery -->
+            <div class="thumbnail-gallery" *ngIf="getAllImages().length > 1">
+              <div class="thumbnail-container">
+                <div
+                  class="thumbnail-item"
+                  *ngFor="let image of getAllImages(); let i = index"
+                  [class.active]="i === currentImageIndex"
+                  (click)="setCurrentImage(i)"
+                >
+                  <img
+                    src="{{ host + image }}"
+                    [alt]="'Product thumbnail ' + (i + 1)"
+                    class="thumbnail-image"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Product Details Section -->
+        <div class="col-lg-6 col-md-6">
+          <div class="product-details">
+            <!-- Header -->
+            <div class="product-header">
+              <div class="store-info">
+                <i class="bi bi-shop"></i>
+                <span>{{ product.storeName }}</span>
+                <span class="verified-badge">
+                  <i class="bi bi-patch-check-fill"></i>
+                  Vérifié
+                </span>
+              </div>
+
+              <div class="wishlist-btn" (click)="toggleWishlist()">
+                <i class="fas" [class]="isWishlisted ? 'bi bi-heart-fill' : 'bi bi-heart'"></i>
+              </div>
+            </div>
+
+            <!-- Product Title -->
+            <h1 class="product-title">{{ product.title }}</h1>
+
+            <!-- Category Badge -->
+            <div class="category-badge">
+              <i class="bi bi-tag"></i>
+              <span>{{ product.category }}</span>
+            </div>
+
+            <!-- Rating Section -->
+            <div class="rating-section">
+              <div class="stars">
+                <i class="bi" [class]="avgStar >= 20 ? 'bi-star-fill' : 'bi-star'" [class.text-warning]="avgStar >= 20"></i>
+                <i class="bi" [class]="avgStar >= 40 ? 'bi-star-fill' : 'bi-star'" [class.text-warning]="avgStar >= 40"></i>
+                <i class="bi" [class]="avgStar >= 60 ? 'bi-star-fill' : 'bi-star'" [class.text-warning]="avgStar >= 60"></i>
+                <i class="bi" [class]="avgStar >= 80 ? 'bi-star-fill' : 'bi-star'" [class.text-warning]="avgStar >= 80"></i>
+                <i class="bi" [class]="avgStar >= 100 ? 'bi-star-fill' : 'bi-star'" [class.text-warning]="avgStar >= 100"></i>
+              </div>
+
+            </div>
+
+            <!-- Pricing Section -->
+            <div class="pricing-section">
+              <!-- Discount pricing (when salePrice exists and is different from regularPrice) -->
+              <div *ngIf="product.salePrice > 0 && product.salePrice !== product.regularPrice" class="price-discount">
+                <span class="current-price sale-price">{{ product.salePrice }} TND</span>
+                <span class="original-price">{{ product.regularPrice }} TND</span>
+                <div class="savings">
+                  <i class="bi bi-tag-fill"></i>
+                  Vous économisez {{ product.regularPrice - product.salePrice }} TND
+                </div>
+              </div>
+
+              <!-- Regular pricing (when no discount) -->
+              <div *ngIf="!(product.salePrice > 0 && product.salePrice !== product.regularPrice)" class="price-single">
+                <span class="current-price">{{ product.regularPrice }} TND</span>
+              </div>
+            </div>
+
+
+
+
+
+            <!-- Stock Status -->
+            <div class="stock-status">
+              <div class="stock-indicator available">
+                <i class="bi bi-check-circle-fill"></i>
+                <span>En stock</span>
+              </div>
+              <div class="delivery-info">
+                <i class="bi bi-truck"></i>
+                <span>Livraison gratuite pour les commandes de plus de 50 TND</span>
+              </div>
+            </div>
+
+            <!-- Product Description -->
+            <div class="product-description" *ngIf="product.description">
+              <h6>Description</h6>
+              <p>{{ product.description }}</p>
+            </div>
+
+            <!-- Quantity and Actions -->
+            <div class="purchase-section">
+              <div class="quantity-section">
+                <label class="quantity-label">Quantité</label>
+                <div class="quantity-selector">
+                  <button
+                    class="quantity-btn minus"
+                    (click)="quantityChange(true)"
+                    [disabled]="quantity <= 1"
+                  >
+                    <i class="bi bi-dash"></i>
+                  </button>
+                  <input
+                    type="number"
+                    class="quantity-input"
+                    [(ngModel)]="quantity"
+                    [min]="1"
+                    readonly
+                  />
+                  <button
+                    class="quantity-btn plus"
+                    (click)="quantityChange(false)"
+                  >
+                    <i class="bi bi-plus"></i>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Action Buttons -->
+              <div class="action-buttons">
+                <button class="btn btn-primary btn-buy-now" (click)="buyNow(product, $event)">
+                  <i class="bi bi-lightning-fill"></i>
+                  <span>Acheter maintenant</span>
+                </button>
+                <button class="btn btn-outline-primary btn-add-cart" (click)="addToCart(product, $event)">
+                  <i class="bi bi-cart-plus"></i>
+                  <span>Ajouter au panier</span>
+                </button>
+              </div>
+
+              <!-- Additional Info -->
+              <div class="additional-info">
+                <div class="info-item">
+                  <i class="bi bi-shield-check"></i>
+                  <span>Garantie de remboursement</span>
+                </div>
+                <div class="info-item">
+                  <i class="bi bi-arrow-clockwise"></i>
+                  <span>Retour gratuit sous 30 jours</span>
+                </div>
+                <div class="info-item">
+                  <i class="bi bi-telephone"></i>
+                  <span>Support client 24/7</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Product Tabs Section -->
+      <div class="product-tabs-section">
+        <div class="tabs-container">
+          <ul class="nav nav-tabs" id="productTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+              <button
+                class="nav-link active"
+                id="description-tab"
+                data-bs-toggle="tab"
+                data-bs-target="#description"
+                type="button"
+                role="tab"
+              >
+                <i class="bi bi-file-text"></i>
+                Description
+              </button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button
+                class="nav-link"
+                id="specifications-tab"
+                data-bs-toggle="tab"
+                data-bs-target="#specifications"
+                type="button"
+                role="tab"
+              >
+                <i class="bi bi-list-ul"></i>
+                Spécifications
+              </button>
+            </li>
+
+            <li class="nav-item" role="presentation">
+              <button
+                class="nav-link"
+                id="shipping-tab"
+                data-bs-toggle="tab"
+                data-bs-target="#shipping"
+                type="button"
+                role="tab"
+              >
+                <i class="bi bi-truck"></i>
+                Livraison
+              </button>
+            </li>
+          </ul>
+
+          <div class="tab-content" id="productTabsContent">
+            <!-- Description Tab -->
+            <div class="tab-pane fade show active" id="description" role="tabpanel">
+              <div class="tab-content-wrapper">
+                <h5>Description du produit</h5>
+                <p>{{ product.description || 'Aucune description disponible pour ce produit.' }}</p>
+              </div>
+            </div>
+
+            <!-- Specifications Tab -->
+            <div class="tab-pane fade" id="specifications" role="tabpanel">
+              <div class="tab-content-wrapper">
+                <h5>Spécifications</h5>
+                <div class="specifications-list">
+                  <div class="spec-item">
+                    <span class="spec-label">Catégorie</span>
+                    <span class="spec-value">{{ product.category }}</span>
+                  </div>
+                  <div class="spec-item">
+                    <span class="spec-label">Marque</span>
+                    <span class="spec-value">{{ product.storeName }}</span>
+                  </div>
+
+                </div>
+              </div>
+            </div>
+
+            <!-- Reviews Tab -->
+            <div class="tab-pane fade" id="reviews" role="tabpanel">
+              <div class="tab-content-wrapper">
+                <h5>Avis clients</h5>
+                <div class="reviews-summary">
+                  <div class="rating-overview">
+                    <div class="average-rating">
+                      <span class="rating-number">{{ avgStar/20 }}</span>
+                      <div class="stars">
+                        <i class="bi" [class]="avgStar >= 20 ? 'bi-star-fill' : 'bi-star'" [class.text-warning]="avgStar >= 20"></i>
+                        <i class="bi" [class]="avgStar >= 40 ? 'bi-star-fill' : 'bi-star'" [class.text-warning]="avgStar >= 40"></i>
+                        <i class="bi" [class]="avgStar >= 60 ? 'bi-star-fill' : 'bi-star'" [class.text-warning]="avgStar >= 60"></i>
+                        <i class="bi" [class]="avgStar >= 80 ? 'bi-star-fill' : 'bi-star'" [class.text-warning]="avgStar >= 80"></i>
+                        <i class="bi" [class]="avgStar >= 100 ? 'bi-star-fill' : 'bi-star'" [class.text-warning]="avgStar >= 100"></i>
+                      </div>
+                      <span class="total-reviews">{{ reviews.length }} avis</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Individual Reviews -->
+                <div class="reviews-list" *ngIf="reviews.length > 0; else noReviews">
+                  <div class="review-item" *ngFor="let review of reviews">
+                    <div class="review-header">
+                      <div class="reviewer-info">
+                        <div class="reviewer-avatar">
+                          <i class="bi bi-person-circle"></i>
+                        </div>
+                        <div class="reviewer-details">
+                          <span class="reviewer-name">{{ review.customerName }}</span>
+                          <div class="review-stars">
+                            <i class="bi" [class]="review.star >= 20 ? 'bi-star-fill text-warning' : 'bi-star'"></i>
+                            <i class="bi" [class]="review.star >= 40 ? 'bi-star-fill text-warning' : 'bi-star'"></i>
+                            <i class="bi" [class]="review.star >= 60 ? 'bi-star-fill text-warning' : 'bi-star'"></i>
+                            <i class="bi" [class]="review.star >= 80 ? 'bi-star-fill text-warning' : 'bi-star'"></i>
+                            <i class="bi" [class]="review.star >= 100 ? 'bi-star-fill text-warning' : 'bi-star'"></i>
+                          </div>
+                        </div>
+                      </div>
+                      <span class="review-date"></span>
+                    </div>
+                    <div class="review-content">
+
+                    </div>
+                  </div>
+                </div>
+
+                <ng-template #noReviews>
+                  <div class="no-reviews">
+                    <i class="bi bi-chat-quote"></i>
+                    <h6>Aucun avis pour le moment</h6>
+                    <p>Soyez le premier à donner votre avis sur ce produit!</p>
+                  </div>
+                </ng-template>
+              </div>
+            </div>
+
+            <!-- Shipping Tab -->
+            <div class="tab-pane fade" id="shipping" role="tabpanel">
+              <div class="tab-content-wrapper">
+                <h5>Informations de livraison</h5>
+                <div class="shipping-info">
+                  <div class="shipping-option">
+                    <div class="shipping-icon">
+                      <i class="bi bi-truck"></i>
+                    </div>
+                    <div class="shipping-details">
+                      <h6>Livraison standard</h6>
+                      <p>3-5 jours ouvrables - Gratuit pour les commandes de plus de 50 TND</p>
+                    </div>
+                  </div>
+                  <div class="shipping-option">
+                    <div class="shipping-icon">
+                      <i class="bi bi-lightning"></i>
+                    </div>
+                    <div class="shipping-details">
+                      <h6>Livraison express</h6>
+                      <p>1-2 jours ouvrables - 15 TND</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
